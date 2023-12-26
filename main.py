@@ -13,13 +13,6 @@ from models import User, Task
 from database import get_db_session
 
 app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 ITEMS = {}
 connected_clients = set()
 
@@ -50,14 +43,12 @@ async def read_task(task_id: int, session=Depends(get_db_session)):
     """
     Получение одной задачи
     """
-    stmt = select(Task).where(Task.id == task_id)
-    result = await session.execute(stmt)
-    task = result.scalar_one_or_none()
-
-    if task is None:
-        raise HTTPException(status_code=404, detail="Задача не найдена")
-
-    return task
+    try:
+        stmt = select(Task).where(Task.id == task_id)
+        task = await session.scalars(stmt)
+        return task.one()
+    except NoResultFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @app.post("/tasks", tags=["Tasks"])
