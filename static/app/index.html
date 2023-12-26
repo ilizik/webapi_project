@@ -69,7 +69,7 @@
     </div>
 
     <script>
-        var ws = new WebSocket("ws://localhost:8000/ws");
+        var ws = new WebSocket(`{{ ws_protocol }}://{{ server_urn }}/ws`);
 
         // Обработчик для сообщений, полученных через WebSocket
 ws.onmessage = function(event) {
@@ -107,7 +107,7 @@ ws.onmessage = function(event) {
         };
 
 function fetchAndDisplayUsers() {
-    fetch('http://localhost:8000/users')
+    fetch('{{ http_protocol }}://{{ server_urn }}/users')
         .then(response => response.json())
         .then(users => {
             const userTabs = document.getElementById('userTabs');
@@ -134,7 +134,7 @@ function addAllTasksTab() {
 
 
 function fetchAndDisplayTasks(userId) {
-    fetch(`http://localhost:8000/users/${userId}/tasks`)
+    fetch(`{{ http_protocol }}://{{ server_urn }}/users/${userId}/tasks`)
         .then(response => response.json())
         .then(tasks => {
             const userTasks = document.getElementById('userTasks');
@@ -179,7 +179,7 @@ function fetchAndDisplayTasks(userId) {
 
         function updateTaskStatus(taskId, newStatus) {
             console.log(`Updating status for task ${taskId} to ${newStatus}`);
-            fetch(`http://127.0.0.1:8000/tasks/${taskId}/status?new_status=${encodeURIComponent(newStatus)}`, {
+            fetch(`{{ http_protocol }}://{{ server_urn }}/tasks/${taskId}/status?new_status=${encodeURIComponent(newStatus)}`, {
                 method: 'PATCH',
                 headers: {
                     'Accept': 'application/json'
@@ -200,7 +200,7 @@ function fetchAndDisplayTasks(userId) {
         }
 
 function fetchAllTasks() {
-    fetch('http://localhost:8000/tasks')
+    fetch('{{ http_protocol }}://{{ server_urn }}/tasks')
         .then(response => response.json())
         .then(tasks => {
             const userTasks = document.getElementById('userTasks');
@@ -238,7 +238,7 @@ function fetchAllTasks() {
 }
 
 function deleteTask(taskId, userId = null) {
-    fetch(`http://localhost:8000/tasks/${taskId}`, {
+    fetch(`{{ http_protocol }}://{{ server_urn }}/tasks/${taskId}`, {
         method: 'DELETE'
     })
     .then(response => {
@@ -285,7 +285,7 @@ function deleteTask(taskId, userId = null) {
     const description = document.getElementById('taskDescription').value;
     const userId = document.getElementById('userId').value;
 
-    fetch('http://localhost:8000/tasks', {
+    fetch('{{ http_protocol }}://{{ server_urn }}/tasks', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -3,8 +3,9 @@ import os
 import json
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
+from fastapi.templating import Jinja2Templates
 
-from fastapi import FastAPI, HTTPException, Depends, WebSocket
+from fastapi import FastAPI, HTTPException, Depends, WebSocket, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocketDisconnect
@@ -16,14 +17,19 @@ app = FastAPI()
 ITEMS = {}
 connected_clients = set()
 
+templates = Jinja2Templates(directory="static/app")
+
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root():
-    base_path = os.path.dirname(__file__)
-    file_path = os.path.join(base_path, 'static', 'app', 'index.html')
-    with open(file_path, 'r') as file:
-        html_content = file.read()
-    return HTMLResponse(content=html_content)
+async def read_root(request: Request):
+    http_protocol = request.headers.get("x-forwarded-proto", "http")
+    ws_protocol = "wss" if http_protocol == "https" else "ws"
+    server_urn = request.url.netloc
+    return templates.TemplateResponse("index.html",
+                                      {"request": request,
+                                       "http_protocol": http_protocol,
+                                       "ws_protocol": ws_protocol,
+                                       "server_urn": server_urn})
 
 
 # Методы с задачами
@@ -253,6 +259,14 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         connected_clients.remove(websocket)
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
